@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RFID Visitor Check-in</title>
+
+    <!-- ✅ Firebase SDK (Must be included before using Firebase) -->
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js"></script>
 </head>
 <body>
     <h2>Welcome! Please scan your RFID card.</h2>
@@ -19,6 +23,22 @@
     <h3 id="message" style="color: green;"></h3> <!-- Feedback message -->
 
     <script>
+        // ✅ Use Firebase with the correct CDN setup
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_M1s5kZkg3cBhzwgQcQMEbNi6LQzLGTw",
+            authDomain: "rfid-checkin-5bab5.firebaseapp.com",
+            databaseURL: "https://rfid-checkin-5bab5-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "rfid-checkin-5bab5",
+            storageBucket: "rfid-checkin-5bab5.appspot.com",
+            messagingSenderId: "1091776650916",
+            appId: "1:1091776650916:web:c462477516cd21fe781031",
+            measurementId: "G-CHRHD7BZLH"
+        };
+
+        // ✅ Initialize Firebase (CDN Version)
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         document.getElementById("rfid").addEventListener("keypress", function(event) {
             if (event.key === "Enter") {
                 event.preventDefault(); // Prevents unwanted form submission
@@ -30,35 +50,29 @@
         });
 
         function processRFID(rfid) {
-            document.getElementById("rfid").value = ""; // Clear the input field for the next scan
-            document.getElementById("message").innerText = "Processing RFID: " + rfid; // Show scanned RFID
+            document.getElementById("rfid").value = ""; // Clear input field
+            document.getElementById("message").innerText = "Processing RFID: " + rfid;
 
-            fetch(`https://your-firebase-api.com/check?rfid=${rfid}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.exists) {
-                        document.getElementById("message").innerText = `${data.name} is here to see ${data.reason}`;
-                        sendEmail(data.name, data.reason);
-                    } else {
-                        let name = prompt("Enter your name:");
-                        let reason = prompt("Who are you here to see?");
-                        if (name && reason) {
-                            registerVisitor(rfid, name, reason);
-                        }
+            db.ref("visitors/" + rfid).once("value").then(snapshot => {
+                if (snapshot.exists()) {
+                    let visitor = snapshot.val();
+                    document.getElementById("message").innerText = `${visitor.name} is here to see ${visitor.reason}`;
+                    sendEmail(visitor.name, visitor.reason);
+                } else {
+                    let name = prompt("Enter your name:");
+                    let reason = prompt("Who are you here to see?");
+                    if (name && reason) {
+                        registerVisitor(rfid, name, reason);
                     }
-                })
-                .catch(error => {
-                    document.getElementById("message").innerText = "Error processing RFID.";
-                    console.error(error);
-                });
+                }
+            }).catch(error => {
+                document.getElementById("message").innerText = "Error processing RFID.";
+                console.error(error);
+            });
         }
 
         function registerVisitor(rfid, name, reason) {
-            fetch("https://your-firebase-api.com/register", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ rfid, name, reason })
-            }).then(() => {
+            db.ref("visitors/" + rfid).set({ name, reason }).then(() => {
                 document.getElementById("message").innerText = `Welcome, ${name}! You are now registered.`;
             });
         }
@@ -74,7 +88,3 @@
     </script>
 </body>
 </html>
-
-</body>
-</html>
-``
