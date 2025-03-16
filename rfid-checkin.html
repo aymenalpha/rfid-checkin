@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RFID Check-In</title>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .container { width: 90%; max-width: 400px; margin: auto; }
+        button { margin: 10px; padding: 15px; font-size: 18px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Visitor Check-In</h2>
+        <button onclick="startCheckIn('approved')">I Have Already Been Approved</button>
+        <button onclick="startCheckIn('register')">Register</button>
+        <input type="text" id="rfidInput" placeholder="Scan your RFID card" autofocus>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function startCheckIn(mode) {
+            const rfidInput = document.getElementById("rfidInput");
+            rfidInput.addEventListener("input", function () {
+                let rfidCode = rfidInput.value.trim();
+                if (rfidCode.length > 5) { 
+                    processRFID(rfidCode, mode);
+                    rfidInput.value = "";
+                }
+            });
+        }
+
+        function processRFID(rfid, mode) {
+            const visitorRef = db.ref("visitors/" + rfid);
+            visitorRef.once("value").then(snapshot => {
+                if (snapshot.exists() && mode === "approved") {
+                    let visitor = snapshot.val();
+                    document.getElementById("message").innerText = `${visitor.name} is here to see ${visitor.reason}`;
+                    sendEmail(visitor.name, visitor.reason);
+                } else if (mode === "register") {
+                    let name = prompt("Enter your name:");
+                    let reason = prompt("Who are you here to see?");
+                    visitorRef.set({ name, reason });
+                    sendEmail(name, reason);
+                    document.getElementById("message").innerText = `Welcome, ${name}! You are now registered.`;
+                } else {
+                    document.getElementById("message").innerText = "RFID not found. Please register.";
+                }
+            });
+        }
+
+        function sendEmail(name, reason) {
+            fetch("https://your-email-api.com/send", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, reason })
+            });
+        }
+    </script>
+</body>
+</html>
