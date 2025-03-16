@@ -16,6 +16,8 @@
     <button onclick="register()">Register</button>
     <button onclick="checkIn()">I Have Already Been Approved</button>
 
+    <h3 id="message" style="color: green;"></h3> <!-- Feedback message -->
+
     <script>
         document.getElementById("rfid").addEventListener("keypress", function(event) {
             if (event.key === "Enter") {
@@ -28,12 +30,14 @@
         });
 
         function processRFID(rfid) {
-            document.getElementById("rfid").value = ""; // Clear the field for the next scan
+            document.getElementById("rfid").value = ""; // Clear the input field for the next scan
+            document.getElementById("message").innerText = "Processing RFID: " + rfid; // Show scanned RFID
+
             fetch(`https://your-firebase-api.com/check?rfid=${rfid}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.exists) {
-                        alert(`${data.name} is here to see ${data.reason}`);
+                        document.getElementById("message").innerText = `${data.name} is here to see ${data.reason}`;
                         sendEmail(data.name, data.reason);
                     } else {
                         let name = prompt("Enter your name:");
@@ -42,6 +46,10 @@
                             registerVisitor(rfid, name, reason);
                         }
                     }
+                })
+                .catch(error => {
+                    document.getElementById("message").innerText = "Error processing RFID.";
+                    console.error(error);
                 });
         }
 
@@ -51,7 +59,7 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ rfid, name, reason })
             }).then(() => {
-                alert(`Welcome, ${name}! You are now registered.`);
+                document.getElementById("message").innerText = `Welcome, ${name}! You are now registered.`;
             });
         }
 
@@ -61,8 +69,12 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name, reason })
             });
+            document.getElementById("message").innerText = `Check-in successful for ${name}. Printing badge...`;
         }
     </script>
+</body>
+</html>
+
 </body>
 </html>
 ``
