@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RFID Visitor Check-in</title>
 
-    <!-- ✅ Firebase SDK (Must be included before using Firebase) -->
+    <!-- ✅ Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js"></script>
+    <script src="https://smtpjs.com/v3/smtp.js"></script>
 </head>
 <body>
     <h2>Welcome! Please scan your RFID card.</h2>
@@ -23,7 +24,7 @@
     <h3 id="message" style="color: green;"></h3> <!-- Feedback message -->
 
     <script>
-        // ✅ Use Firebase with the correct CDN setup
+        // ✅ Firebase Config (Replace with your Firebase credentials)
         const firebaseConfig = {
             apiKey: "AIzaSyA_M1s5kZkg3cBhzwgQcQMEbNi6LQzLGTw",
             authDomain: "rfid-checkin-5bab5.firebaseapp.com",
@@ -33,15 +34,16 @@
             messagingSenderId: "1091776650916",
             appId: "1:1091776650916:web:c462477516cd21fe781031",
             measurementId: "G-CHRHD7BZLH"
+"
         };
-
-        // ✅ Initialize Firebase (CDN Version)
+        
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // Detect RFID scans
         document.getElementById("rfid").addEventListener("keypress", function(event) {
             if (event.key === "Enter") {
-                event.preventDefault(); // Prevents unwanted form submission
+                event.preventDefault(); // Prevent form submission
                 let rfid = document.getElementById("rfid").value.trim();
                 if (rfid) {
                     processRFID(rfid);
@@ -74,17 +76,29 @@
         function registerVisitor(rfid, name, reason) {
             db.ref("visitors/" + rfid).set({ name, reason }).then(() => {
                 document.getElementById("message").innerText = `Welcome, ${name}! You are now registered.`;
+                sendEmail(name, reason);
             });
         }
 
         function sendEmail(name, reason) {
-            fetch("https://your-email-api.com/send", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, reason })
+            Email.send({
+                Host: "smtp.office365.com",
+                Username: "rfidcheckin@outlook.com",
+                Password: "checkinrfid123",
+                To: "rfidcheckin@outlook.com",
+                From: "rfidcheckin@outlook.com",
+                Subject: "New Visitor Check-in",
+                Body: `Visitor: ${name}<br>Reason: ${reason}<br>Time: ${new Date().toLocaleString()}`
+            }).then(message => {
+                if (message === "OK") {
+                    document.getElementById("message").innerText = `Check-in successful for ${name}. Printing badge...`;
+                } else {
+                    document.getElementById("message").innerText = "Error sending email.";
+                    console.error(message);
+                }
             });
-            document.getElementById("message").innerText = `Check-in successful for ${name}. Printing badge...`;
         }
     </script>
 </body>
 </html>
+
