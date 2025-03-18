@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Block Blast</title>
+<style>
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #3498db; /* Blue background */
+  }
+
+  #game-container {
+    border: 2px solid #333;
+    padding: 10px;
+    background-color: #2c3e50; /* Darker background for the game area */
+    user-select: none;
+    width: 320px;
+    height: 480px; /* Increased height to accommodate the bottom section */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  #grid {
+    display: grid;
+    grid-template-columns: repeat(10, 30px);
+    grid-template-rows: repeat(10, 30px);
+    gap: 2px;
+    background-color: #2c3e50; /* Darker background for the grid */
+    padding: 5px; /* Add padding for better visual spacing */
+  }
+
+  .cell {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #34495e; /* Darker border for cells */
+    background-color: #34495e; /* Darker cell background */
+  }
+
+  .filled {
+    border: 1px solid #2980b9;
+  }
+
+  #pieces-container {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px;
+    background-color: #3498db; /* Blue background for the bottom section */
+  }
+
+  .piece {
+    display: grid;
+    cursor: pointer;
+    border: 1px solid #ddd;
+    padding: 5px;
+    background-color: #f9f9f9;
+  }
+
+  .piece-cell {
+    width: 25px;
+    height: 25px;
+    border: 1px solid #ccc;
+    background-color: #eee;
+  }
+
+  .piece-filled {
+    border: 1px solid #c0392b;
+  }
+
+  #score-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    color: white;
+  }
+
+  #score-top img {
+    height: 20px;
+    margin-right: 5px;
+  }
+
+  #score-top .settings {
+    cursor: pointer;
+  }
+
+  #score {
+    text-align: center;
+    font-size: 36px;
+    color: white;
+    margin: 20px 0;
+  }
+
+  .block-blue { background-color: #3498db; }
+  .block-orange { background-color: #e67e22; }
+  .block-green { background-color: #2ecc71; }
+  .block-red { background-color: #e74c3c; }
+  .block-purple { background-color: #9b59b6; }
+  .block-yellow { background-color: #f1c40f; }
+
+</style>
+</head>
+<body>
+  <div id="game-container">
+    <div id="score-top">
+      <div><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAJpJREFUOE9jZKAxYKSxYCiA8e/fvwPi/v37D4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4jBwcEBQ4j
